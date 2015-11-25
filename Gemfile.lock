@@ -52,7 +52,6 @@ GEM
       coffee-script-source
       execjs
     coffee-script-source (1.9.1.1)
-    csv (2.7.3)
     debug_inspector (0.0.2)
     erubis (2.7.0)
     execjs (2.6.0)
@@ -159,7 +158,6 @@ DEPENDENCIES
   activerecord-import
   byebug
   coffee-rails (~> 4.1.0)
-  csv
   jbuilder (~> 2.0)
   jquery-rails
   pg
