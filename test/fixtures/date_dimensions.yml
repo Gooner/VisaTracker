@@ -1,0 +1,13 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  year_value: 1
+  month_value: 1
+  day_value: 1
+  date_value: 2015-11-20
+
+two:
+  year_value: 1
+  month_value: 1
+  day_value: 1
+  date_value: 2015-11-20

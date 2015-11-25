@@ -1,0 +1,17 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  employer_name: MyString
+  employer_address: MyString
+  employer_city: MyString
+  employer_state: MyString
+  employer_country: MyString
+  employer_postal_code: MyString
+
+two:
+  employer_name: MyString
+  employer_address: MyString
+  employer_city: MyString
+  employer_state: MyString
+  employer_country: MyString
+  employer_postal_code: MyString
