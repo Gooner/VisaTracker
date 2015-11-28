@@ -2,7 +2,13 @@ Rails.application.routes.draw do
 
     root 'home#index'
 
-    get 'LaborCertFact/ByCaseSubmitted/DecidedOn/:decided_on' => 'labor_certification#by_case_submitted_on_date', :defaults => { :format => 'json' }
+    get '/LaborCertFact/ByCaseSubmitted/DecidedOn/:decided_on' => 'labor_certification#by_case_submitted_on_date', :defaults => { :format => 'json' }
+
+    get '/DataImport/:importType' => 'data_import#index'
+    get '/DataImport/status/:jobId' => 'data_import#import_status', :defaults => { :format => 'json' }
+    post '/DataImport/Upload/state' => 'data_import#state_data', :defaults => { :format => 'json' }
+    post '/DataImport/Upload/labor' => 'data_import#labor_data', :defaults => { :format => 'json' }
+    
     
     # The priority is based upon order of creation: first created -> highest priority.
     # See how all your routes lay out with "rake routes".

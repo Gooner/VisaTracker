@@ -4,7 +4,7 @@ class StateImportJob < ActiveJob::Base
     queue_as :default
 
     def perform(state_file)
-
+        
         state_dimensions = []
         ActiveRecord::Base.transaction do
             CSV.foreach(state_file, {:headers => true, :encoding => 'windows-1251:utf-8'}).each do |row|
@@ -16,9 +16,11 @@ class StateImportJob < ActiveJob::Base
                     state_dimensions << state_dimension
                 end
             end
-            
+
             StateDimension.import state_dimensions
         end
+        
+        TempFileDeleteJob.perform_later(state_file)
     end
 
     private

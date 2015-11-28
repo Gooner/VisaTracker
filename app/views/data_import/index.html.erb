@@ -1,0 +1,44 @@
+<h3 class="page-title"> Data Import
+    <small>{{subTitle}}</small>
+</h3>
+
+<div data-ng-include="'templates/page-breadcrumb.html'" data-ng-controller="PageBreadcrumbController"> </div>
+
+<div class="row" ng-hide="uploaded == true">
+    <div class="col-md-12">
+        <%= form_tag('/DataImport/Upload/' + @importType, multipart: true, id: 'fileupload', 'ng-submit': 'uploadFile($event)') do %>
+        <div class="form-body">
+            <div class="form-group">
+                <label class="control-label col-md-3">{{fileInputLabel}}</label>
+                <div class="col-md-9">
+                    <div class="fileinput fileinput-new" data-provides="fileinput">
+                        <div class="input-group input-large">
+                            <div class="form-control uneditable-input span3" data-trigger="fileinput">
+                                <i class="fa fa-file fileinput-exists"></i>&nbsp;
+                                <span class="fileinput-filename"> </span>
+                            </div>
+                            <span class="input-group-addon btn default btn-file">
+                                <span class="fileinput-new"> Select file </span>
+                                <span class="fileinput-exists"> Change </span>
+                                <%= file_field_tag :data_file, accept: ".csv, text/plain" %>
+                            </span>
+                            <a href="#" class="input-group-addon btn red fileinput-exists" data-dismiss="fileinput"> Remove </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <button type="submit" nam="commit" class="btn blue start">
+                    <i class="fa fa-upload"></i>
+                    <span> Start Upload </span>
+                </button>
+            </div>
+        </div>
+        <% end %>
+    </div>
+</div>
+<div class="row" ng-show="uploaded == true">
+    <div class="col-md-12">
+        
+    </div>
+</div>

@@ -1,4 +1,4 @@
-/*global angular, console, Morris, jQuery, $ */
+/*global angular, console, Morris, jQuery, $, toastr */
 var chartColours = [
     '#3598DC', // blue
     '#1BC98E', // 27, 201, 216
@@ -128,4 +128,54 @@ angular.module("visaTracker").controller("CustomDateRangeController", [
     '$scope',
     function ($scope) {
         'use strict';
+    }]);
+
+angular.module("visaTracker").controller("DataImportController", [
+    '$scope', '$routeParams',
+    function ($scope, $routeParams) {
+        'use strict';
+
+        $scope.progress = 0;
+        $scope.uploaded = false;
+        $("#fileupload").ajaxForm();
+
+        var importType = $routeParams.importType ? $routeParams.importType.toLowerCase() : "";
+        switch ($routeParams.importType) {
+            case "state":
+                $scope.subTitle = "States and Territories";
+                $scope.fileInputLabel = "States & Territories Data File";
+                break;
+            default:
+                $scope.subTitle = "Labor Data";
+                $scope.fileInputLabel = "Labor Data File";
+                break;
+        }
+
+        $scope.onFileSelected = function (file) {
+            $scope.selectedFileName = file.name;
+        };
+
+        $scope.uploadFile = function ($event) {
+
+            var $form = $("#fileupload");     
+            $scope.progress = 0;
+
+            $form.ajaxSubmit({
+                type: 'POST',
+                dataType: 'json',
+                uploadProgress: function(evt, pos, tot, percentComplete) { 
+                    $scope.uploaded = true;
+                    $scope.progress = percentComplete;
+                },
+                error: function(evt, statusText, response, form) { 
+                    toastr.error(statusText, "Failed to upload " + $scope.fileInputLabel);
+                },
+                success: function(response, status, xhr, form) { 
+                    toastr.success("Uploaded", "Uploaded " + $scope.fileInputLabel);
+                },
+            });
+            
+            $event.preventDefault();
+            return false; 
+        };
     }]);

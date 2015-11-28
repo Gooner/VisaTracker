@@ -4,8 +4,8 @@ class LaborCertImportJob < ActiveJob::Base
     queue_as :default
 
     def perform(file)
-        puts file
-
+        
+        started_at = Date.today
         laborCases = []
         ActiveRecord::Base.transaction do
             CSV.foreach(file, {:headers => true, :encoding => 'windows-1251:utf-8'}).each do |row|
@@ -22,6 +22,9 @@ class LaborCertImportJob < ActiveJob::Base
             
             LaborCertification.import laborCases
         end
+        
+        TempFileDeleteJob.perform_later(file)
+        LaborCertProcessJob.perform_later(started_at.to_s)
     end
 
     private

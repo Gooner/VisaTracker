@@ -79,14 +79,14 @@ angular.module("visaTracker")
             scope.count = 0;
             $timeout(function () {
                 counterupFunc(scope, scope.element);
-            }, settings.counterup.delay)
+            }, settings.counterup.delay);
         }
 
         return {
             restrict: 'CA',
             scope: {
                 value: '=?',
-                format: '=?'                
+                format: '=?'
             },
             link: function (scope, element, attrs) {
                 scope.element = element;

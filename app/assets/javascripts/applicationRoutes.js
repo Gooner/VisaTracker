@@ -2,6 +2,7 @@
 angular.module("visaTracker")
     .config(['$routeProvider', '$locationProvider', function ($routeProvider, $locationProvider) {
         'use strict';
+
         var dashboardPath = [{
             name: "Dashboard",
             url: "#/dashboard/"
@@ -18,6 +19,18 @@ angular.module("visaTracker")
                     '../assets/global/plugins/morris/raphael-min.js',
                     '../assets/global/plugins/jqvmap/jqvmap/jquery.vmap.js',
                     '../assets/global/plugins/jqvmap/jqvmap/maps/jquery.vmap.usa.js'
+                ]
+            });
+        }
+
+        function loadDataImportFiles($ocLazyLoad) {
+            return $ocLazyLoad.load({
+                name: 'visaTracker',
+                insertBefore: '#ng_load_plugins_before',
+                files: [
+                    '../assets/global/plugins/bootstrap-fileinput/bootstrap-fileinput.css',
+                    '../assets/global/plugins/bootstrap-fileinput/bootstrap-fileinput.js',
+                    '../assets/global/plugins/jquery.form.min.js'
                 ]
             });
         }
@@ -53,6 +66,22 @@ angular.module("visaTracker")
             templateUrl: "templates/search-box.html",
             data: { pageTitle: 'Search' },
             controller: "SearchController"
+        }).when('/data-import/:importType?', {
+            url: "/data-import",
+            templateUrl: function (arg) {
+                return "/DataImport/" + arg.importType;
+            },
+            data: { 
+                pageTitle: 'Data Import',
+                path: [{
+                    name: "Data Import",
+                    url: "#/data-import"
+                }]
+            },
+            controller: "DataImportController",
+            resolve: {
+                deps: ['$ocLazyLoad', loadDataImportFiles]
+            }
         }).otherwise({
             redirectTo: '/dashboard/latest'
         });

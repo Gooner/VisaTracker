@@ -1,8 +1,9 @@
 class LaborCertProcessJob < ActiveJob::Base
     queue_as :default
 
-    def perform(updated_after)
+    def perform(updated_after_str)
 
+        updated_after = Date.parse(updated_after_str)
         get_uniq_decision_date(updated_after).each do |record|
             puts record.decision_date
 
