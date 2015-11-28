@@ -3,12 +3,12 @@ require 'csv'
 class LaborCertImportJob < ActiveJob::Base
     queue_as :default
 
-    def perform(file)
+    def perform(url)
         
         started_at = Date.today
         laborCases = []
         ActiveRecord::Base.transaction do
-            CSV.foreach(file, {:headers => true, :encoding => 'windows-1251:utf-8'}).each do |row|
+            CSV.new(open(url), {:headers => true, :encoding => 'windows-1251:utf-8'}).each do |row|
                 laborCase = create_labor_certificate(row)
 
                 if laborCase.valid?
@@ -23,7 +23,7 @@ class LaborCertImportJob < ActiveJob::Base
             LaborCertification.import laborCases
         end
         
-        TempFileDeleteJob.perform_later(file)
+        TempFileDeleteJob.perform_later(url)
         LaborCertProcessJob.perform_later(started_at.to_s)
     end
 

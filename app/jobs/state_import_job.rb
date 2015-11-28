@@ -3,11 +3,11 @@ require 'csv'
 class StateImportJob < ActiveJob::Base
     queue_as :default
 
-    def perform(state_file)
+    def perform(url)
         
         state_dimensions = []
         ActiveRecord::Base.transaction do
-            CSV.foreach(state_file, {:headers => true, :encoding => 'windows-1251:utf-8'}).each do |row|
+            CSV.new(open(url), {:headers => true, :encoding => 'windows-1251:utf-8'}).each do |row|
                 state_dimension = create_state_dimension(row)
 
                 if state_dimension.valid?
@@ -20,7 +20,7 @@ class StateImportJob < ActiveJob::Base
             StateDimension.import state_dimensions
         end
         
-        TempFileDeleteJob.perform_later(state_file)
+        TempFileDeleteJob.perform_later(url)
     end
 
     private
