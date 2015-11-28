@@ -47,6 +47,9 @@ group :development, :test do
 
     # Call 'byebug' anywhere in the code to stop execution and get a debugger console
     gem 'byebug'
+
+    # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
+    gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 end
 
 group :development do
@@ -59,7 +62,9 @@ group :production do
     gem 'pg'
 
     gem 'rails_12factor'
+
+
+    # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
+    gem 'tzinfo-data', platforms: [:mingw, :mswin, :mingw_20, :jruby]
 end
 
-# Windows does not include zoneinfo files, so bundle the tzinfo-data gem
-gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
