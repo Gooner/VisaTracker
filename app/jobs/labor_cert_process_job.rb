@@ -9,18 +9,21 @@ class LaborCertProcessJob < ActiveJob::Base
             get_uniq_decision_date(updated_after).each do |record|
                 logger.debug "Processing record with decision date #{record.decision_date}."
 
+                ensure_employer_name_dimension(record.decision_date)
+                logger.debug "Employer name dimensions are created for decision date #{record.decision_date}."
+
                 fact_records = calc_labor_cert_fact_data(record.decision_date)
                 logger.debug "#{fact_records.count} fact records found for decision date #{record.decision_date}."
 
                 ActiveRecord::Base.transaction do
                     logger.debug "Deleting existing fact records for decision date #{record.decision_date}."
                     delete_labor_cert_facts(record.decision_date)
-                    
+
                     logger.debug "Importing calculated fact records for decision date #{record.decision_date}."
                     import_labor_cert_facts(fact_records)
                 end
             end
-            
+
             logger.debug "Completed labor data processing job."
         rescue => error
             logger.fatal "Labor data import job failed. Error Type: #{error.class}, Message: #{error.message}."
@@ -46,7 +49,7 @@ class LaborCertProcessJob < ActiveJob::Base
     def calc_labor_cert_fact_data(decision_date)
         return LaborCertification.
             where(decision_date: decision_date).
-            select('labor_certifications.*, COUNT(*) as case_count').
+            select('labor_certifications.decision_date, labor_certifications.case_submitted, labor_certifications.case_status, labor_certifications.employer_name, labor_certifications.work_state, labor_certifications.job_title, COUNT(labor_certifications.id) as case_count').
             group(:decision_date, :case_submitted, :case_status, :employer_name, :work_state, :job_title).
             to_a
     end
@@ -78,7 +81,7 @@ class LaborCertProcessJob < ActiveJob::Base
         submitted_on = create_date_dimension(record.case_submitted)
         decision_on = create_date_dimension(record.decision_date)
         case_status = create_case_status_dimension(record.case_status)
-        employer = create_employer_name_dimension(record.employer_name, record.employer_address, record.employer_city, record.employer_state, record.employer_country, record.employer_postal_code)
+        employer = get_employer_name_dimension(record.employer_name)
         job_title = create_job_title_dimension(record.job_title)
 
         labor_cert_fact = LaborCertificationFact.new do |lct|
@@ -128,8 +131,25 @@ class LaborCertProcessJob < ActiveJob::Base
         return case_status_dimension
     end
 
-    def create_employer_name_dimension(employer_name, employer_address, employer_city, employer_state, employer_country, employer_postal_code)
+    def ensure_employer_name_dimension(decision_date)
+        LaborCertification.
+            where(decision_date: decision_date).
+            select(:employer_name, :employer_address, :employer_city, :employer_state, :employer_country, :employer_postal_code).
+            uniq().each do |employer|
+                create_employer_name_dimension(employer.employer_name, 
+                    employer.employer_address, employer.employer_city, 
+                    employer.employer_state, employer.employer_country, 
+                    employer.employer_postal_code)
+            end
+    end
+
+    def get_employer_name_dimension(employer_name)
         employer_name_dimension = EmployerNameDimension.find_by(lookup_field: employer_name.gsub(/\W/,'').upcase)
+        return employer_name_dimension
+    end
+
+    def create_employer_name_dimension(employer_name, employer_address, employer_city, employer_state, employer_country, employer_postal_code)
+        employer_name_dimension = get_employer_name_dimension(employer_name)
 
         unless employer_name_dimension.nil?
             return employer_name_dimension            
