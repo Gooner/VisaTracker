@@ -2,20 +2,28 @@ class LaborCertProcessJob < ActiveJob::Base
     queue_as :default
 
     def perform(updated_after_str)
+        begin
+            logger.debug "Starting loabor data processing job. Updated after: #{updated_after_str}."
+            updated_after = Date.parse(updated_after_str)
 
-        updated_after = Date.parse(updated_after_str)
-        get_uniq_decision_date(updated_after).each do |record|
-            puts record.decision_date
+            get_uniq_decision_date(updated_after).each do |record|
+                logger.debug "Processing record with decision date #{record.decision_date}."
 
-            fact_records = calc_labor_cert_fact_data(record.decision_date)
-            puts fact_records.count
+                fact_records = calc_labor_cert_fact_data(record.decision_date)
+                logger.debug "#{fact_records.count} fact records found for decision date #{record.decision_date}."
 
-            ActiveRecord::Base.transaction do
-
-                delete_labor_cert_facts(record.decision_date)
-
-                import_labor_cert_facts(fact_records)
+                ActiveRecord::Base.transaction do
+                    logger.debug "Deleting existing fact records for decision date #{record.decision_date}."
+                    delete_labor_cert_facts(record.decision_date)
+                    
+                    logger.debug "Importing calculated fact records for decision date #{record.decision_date}."
+                    import_labor_cert_facts(fact_records)
+                end
             end
+            
+            logger.debug "Completed labor data processing job."
+        rescue => error
+            logger.fatal "Labor data import job failed. Error Type: #{error.class}, Message: #{error.message}."
         end
     end
 
@@ -72,7 +80,7 @@ class LaborCertProcessJob < ActiveJob::Base
         case_status = create_case_status_dimension(record.case_status)
         employer = create_employer_name_dimension(record.employer_name, record.employer_address, record.employer_city, record.employer_state, record.employer_country, record.employer_postal_code)
         job_title = create_job_title_dimension(record.job_title)
-        
+
         labor_cert_fact = LaborCertificationFact.new do |lct|
             lct.work_state_id = work_state.id
             lct.submitted_on_id = submitted_on.id

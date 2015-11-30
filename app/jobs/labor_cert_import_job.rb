@@ -4,30 +4,45 @@ class LaborCertImportJob < ActiveJob::Base
     queue_as :default
 
     def perform(url)
-        
-        started_at = Date.today
-        laborCases = []
-        ActiveRecord::Base.transaction do
-            CSV.new(open(url), {:headers => true, :encoding => 'windows-1251:utf-8'}).each do |row|
-                laborCase = create_labor_certificate(row)
+        begin
+            logger.debug "Starting loabor data import job. File: #{url}"
+            started_at = Date.today
 
-                if laborCase.valid?
-                    puts laborCase.case_number
-
-                    LaborCertification.delete_all(case_number: laborCase.case_number)
-
-                    laborCases << laborCase
-                end
+            ActiveRecord::Base.transaction do
+                laborCases = parse_labor_cases(url)
+                logger.debug "Parsed labor cases. Found #{laborCases.count} cases."
+                
+                LaborCertification.import laborCases
             end
+
+            logger.debug "Imported labor cases. Starting job to process imported cases after #{started_at}."
+            LaborCertProcessJob.perform_later(started_at.to_s)
             
-            LaborCertification.import laborCases
+        rescue => error
+            logger.fatal "Labor data import job failed. Error Type: #{error.class}, Message: #{error.message}."
         end
-        
+
+        logger.debug "Finished state data import job. Calling temp file delete job."
         TempFileDeleteJob.perform_later(url)
-        LaborCertProcessJob.perform_later(started_at.to_s)
     end
 
     private
+
+    def parse_labor_cases(url)
+        laborCases = []
+        CSV.new(open(url), {:headers => true, :encoding => 'windows-1251:utf-8'}).each do |row|
+            laborCase = create_labor_certificate(row)
+
+            if laborCase.valid?
+                logger.debug "Found labor case #{laborCase.case_number} and deleting if exists."
+                LaborCertification.delete_all(case_number: laborCase.case_number)
+
+                laborCases << laborCase
+            end
+        end
+        
+        return laborCases
+    end
 
     def create_labor_certificate(row)
 
