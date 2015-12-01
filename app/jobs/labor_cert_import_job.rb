@@ -22,7 +22,7 @@ class LaborCertImportJob < ActiveJob::Base
             logger.fatal "Labor data import job failed. Error Type: #{error.class}, Message: #{error.message}."
         end
 
-        logger.info "Finished state data import job. Calling temp file delete job."
+        logger.info "Finished labor data import job. Calling temp file delete job."
         TempFileDeleteJob.perform_later(url)
     end
 
@@ -30,7 +30,8 @@ class LaborCertImportJob < ActiveJob::Base
 
     def parse_labor_cases(url)
         laborCases = []
-        CSV.new(open(url, 'rb:UTF-16LE'), {:headers => true, :encoding => 'UTF-16LE:UTF-8', :col_sep => ','}).each do |row|
+        logger.debug "Parsing the labor data file"
+        CSV.new(open(url, 'rt:windows-1252:utf-8'), {:headers => true, :encoding => 'windows-1252:utf-8'}).each do |row|
             laborCase = create_labor_certificate(row)
 
             if laborCase.valid?
