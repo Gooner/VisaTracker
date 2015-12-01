@@ -30,7 +30,7 @@ class LaborCertImportJob < ActiveJob::Base
 
     def parse_labor_cases(url)
         laborCases = []
-        CSV.new(open(url, 'rt'), {:headers => true, :encoding => 'UTF-16LE:UTF-8', :col_sep => ','}).each do |row|
+        CSV.new(open(url, 'rb:UTF-16LE'), {:headers => true, :encoding => 'UTF-16LE:UTF-8', :col_sep => ','}).each do |row|
             laborCase = create_labor_certificate(row)
 
             if laborCase.valid?
