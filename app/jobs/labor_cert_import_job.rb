@@ -5,7 +5,7 @@ class LaborCertImportJob < ActiveJob::Base
 
     def perform(url)
         begin
-            logger.debug "Starting loabor data import job. File: #{url}"
+            logger.info "Starting loabor data import job. File: #{url}"
             started_at = Date.today
 
             ActiveRecord::Base.transaction do
@@ -22,7 +22,7 @@ class LaborCertImportJob < ActiveJob::Base
             logger.fatal "Labor data import job failed. Error Type: #{error.class}, Message: #{error.message}."
         end
 
-        logger.debug "Finished state data import job. Calling temp file delete job."
+        logger.info "Finished state data import job. Calling temp file delete job."
         TempFileDeleteJob.perform_later(url)
     end
 

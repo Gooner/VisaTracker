@@ -3,7 +3,7 @@ class LaborCertProcessJob < ActiveJob::Base
 
     def perform(updated_after_str)
         begin
-            logger.debug "Starting loabor data processing job. Updated after: #{updated_after_str}."
+            logger.info "Starting loabor data processing job. Updated after: #{updated_after_str}."
             updated_after = Date.parse(updated_after_str)
 
             get_uniq_decision_date(updated_after).each do |record|
@@ -24,7 +24,7 @@ class LaborCertProcessJob < ActiveJob::Base
                 end
             end
 
-            logger.debug "Completed labor data processing job."
+            logger.info "Completed labor data processing job."
         rescue => error
             logger.fatal "Labor data import job failed. Error Type: #{error.class}, Message: #{error.message}."
         end
