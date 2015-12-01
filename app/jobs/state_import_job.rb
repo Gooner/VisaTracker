@@ -28,7 +28,7 @@ class StateImportJob < ActiveJob::Base
     def parse_state_dimensions(url)
         state_dimensions = []
         logger.debug "Parsing the state data file"
-        CSV.new(open(url), {:headers => true, :encoding => 'UTF-16LE:UTF-8', :col_sep => ',', :row_sep => "\n"}).each do |row|
+        CSV.new(open(url, 'rt'), {:headers => true, :encoding => 'UTF-16LE:UTF-8', :col_sep => ','}).each do |row|
             state_dimension = create_state_dimension(row)
 
             if state_dimension.valid?
