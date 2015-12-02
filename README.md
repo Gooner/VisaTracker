@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Rails 4 Sample App on OpenShift #
 Quickstart rails 4 application for openshift.
 
@@ -147,3 +148,8 @@ License
 -------
 
 This code is dedicated to the public domain to the maximum extent permitted by applicable law, pursuant to CC0 (http://creativecommons.org/publicdomain/zero/1.0/)
+=======
+The OpenShift `ruby` cartridge documentation can be found at:
+
+http://openshift.github.io/documentation/oo_cartridge_guide.html#ruby
+>>>>>>> 849eb8e1ce65d517e0c50b5f866c51b0c644cc00
