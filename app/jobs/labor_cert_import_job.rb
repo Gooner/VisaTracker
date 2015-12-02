@@ -8,16 +8,11 @@ class LaborCertImportJob < ActiveJob::Base
             logger.info "Starting loabor data import job. File: #{url}"
             started_at = Date.today
 
-            ActiveRecord::Base.transaction do
-                laborCases = parse_labor_cases(url)
-                logger.debug "Parsed labor cases. Found #{laborCases.count} cases."
-                
-                LaborCertification.import laborCases
-            end
-
+            import_labor_cases(url)
             logger.debug "Imported labor cases. Starting job to process imported cases after #{started_at}."
+
             LaborCertProcessJob.perform_later(started_at.to_s)
-            
+
         rescue => error
             logger.fatal "Labor data import job failed. Error Type: #{error.class}, Message: #{error.message}."
         end
@@ -28,28 +23,43 @@ class LaborCertImportJob < ActiveJob::Base
 
     private
 
-    def parse_labor_cases(url)
-        laborCases = []
-        logger.debug "Parsing the labor data file"
-        CSV.new(open(url, 'rt:windows-1252:utf-8'), {:headers => true, :encoding => 'windows-1252:utf-8'}).each do |row|
-            laborCase = create_labor_certificate(row)
+    def import_labor_cases(url)
+        labor_cases = []
 
-            if laborCase.valid?
-                logger.debug "Found labor case #{laborCase.case_number} and deleting if exists."
-                LaborCertification.delete_all(case_number: laborCase.case_number)
+        ActiveRecord::Base.transaction do
+            logger.debug "Parsing the labor data file"
+            CSV.new(open(url, 'rt:windows-1252:utf-8'), {:headers => true, :encoding => 'windows-1252:utf-8'}).each do |row|
+                labor_case = create_labor_certificate(row)
 
-                laborCases << laborCase
+                if labor_case.valid?
+                    logger.debug "Found valid labor case with case #{labor_case.case_number}."
+                    labor_cases << labor_case
+
+                    if labor_cases.count > 99
+                        delete_insert_labor_cases(labor_cases)
+                        labor_cases = []
+                    end
+                end
             end
+            
+            delete_insert_labor_cases(labor_cases)
         end
-        
-        return laborCases
+    end
+
+    def delete_insert_labor_cases(labor_cases)
+        case_numbers = labor_cases.map { |l| l.case_number }
+        logger.debug "Deleting existing labor cases."
+        LaborCertification.delete_all(:case_number => case_numbers)
+
+        logger.debug "Importing new labor cases."
+        LaborCertification.import labor_cases
     end
 
     def create_labor_certificate(row)
 
         case_time = DateTime.strptime(row['CASE_NUMBER'].split("-")[1], '%y%j')
 
-        laborCase = LaborCertification.new do |lcd|
+        labor_case = LaborCertification.new do |lcd|
             lcd.case_number = row['CASE_NUMBER']
             lcd.case_submitted = case_time
             lcd.case_status = row['CASE_STATUS']
@@ -77,6 +87,6 @@ class LaborCertImportJob < ActiveJob::Base
             lcd.class_of_admission = row['CLASS_OF_ADMISSION']
         end
 
-        return laborCase
+        return labor_case
     end
 end
