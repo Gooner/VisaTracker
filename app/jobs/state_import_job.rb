@@ -5,7 +5,7 @@ class StateImportJob < ActiveJob::Base
 
     def perform(url)
         begin
-            logger.info "Starting state data import job. File: #{url}"
+            logger.info "Starting state data import job. Env: #{ENV['RAILS_ENV']}. File: #{url}"
 
             ActiveRecord::Base.transaction do
 
