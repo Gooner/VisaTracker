@@ -52,8 +52,8 @@ Rails.application.configure do
     config.log_tags = [ :subdomain, :uuid ]
 
     # Use a different logger for distributed setups.
-    #logFile = File.join(ENV['OPENSHIFT_LOG_DIR'].present? ? ENV['OPENSHIFT_LOG_DIR'] : 'log', 'debug.log')
-    #config.logger = ActiveSupport::TaggedLogging.new(Logger.new(logFile))
+    logFile = File.join(ENV['OPENSHIFT_LOG_DIR'].present? ? ENV['OPENSHIFT_LOG_DIR'] : 'log', 'debug.log')
+    config.logger = ActiveSupport::TaggedLogging.new(Logger.new(logFile, 10, 10485760))
 
     # Use a different cache store in production.
     # config.cache_store = :mem_cache_store
