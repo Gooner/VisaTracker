@@ -156,7 +156,9 @@ angular.module("visaTracker").controller("DataImportController", [
         };
 
         $scope.uploadFile = function ($event) {
-
+            $event.preventDefault();
+            $event.stopImmediatePropagation();
+            
             var $form = $("#fileupload");     
             $scope.progress = 0;
 
@@ -175,7 +177,6 @@ angular.module("visaTracker").controller("DataImportController", [
                 },
             });
             
-            $event.preventDefault();
             return false; 
         };
     }]);
