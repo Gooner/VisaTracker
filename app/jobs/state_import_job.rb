@@ -6,15 +6,7 @@ class StateImportJob < ActiveJob::Base
     def perform(url)
         begin
             logger.info "Starting state data import job. Env: #{ENV['RAILS_ENV']}. File: #{url}"
-
-            ActiveRecord::Base.transaction do
-
-                state_dimensions = parse_state_dimensions(url)
-                logger.debug "Parsed state data. Found #{state_dimensions.count} states."
-
-                StateDimension.import state_dimensions
-            end
-
+            import_state_data(url)
         rescue => error
             logger.fatal "State data import job failed. Error Type: #{error.class}, Message: #{error.message}."
         end
@@ -25,20 +17,26 @@ class StateImportJob < ActiveJob::Base
 
     private
 
-    def parse_state_dimensions(url)
-        state_dimensions = []
+    def import_state_data(url)
+
         logger.debug "Parsing the state data file"
         CSV.new(open(url, 'rt:windows-1252:utf-8'), {:headers => true, :encoding => 'windows-1252:utf-8'}).each do |row|
             state_dimension = create_state_dimension(row)
 
             if state_dimension.valid?
-                logger.debug "Found state #{state_dimension.lookup_field} and deleting if exists."
-                StateDimension.delete_all(lookup_field: state_dimension.lookup_field)
-                state_dimensions << state_dimension
+                delete_insert_state(state_dimension)
             end
         end
+    end
 
-        return state_dimensions
+    def delete_insert_state(state_dimension)
+        ActiveRecord::Base.transaction do
+            logger.debug "Found state #{state_dimension.lookup_field} and deleting if exists."
+            StateDimension.delete_all(lookup_field: state_dimension.lookup_field)
+            
+            logger.debug "Importing new state #{state_dimension.lookup_field}."
+            state_dimension.save
+        end
     end
 
     def create_state_dimension(row)
