@@ -6,7 +6,7 @@
 
 <div class="row" ng-hide="uploaded == true">
     <div class="col-md-12">
-        <%= form_tag '/DataImport/Upload/' + @importType, multipart: true, :id => 'fileupload', 'ng-submit' => 'uploadFile($event)' do %>
+        <%= form_tag '/DataImport/Upload/' + @importType, multipart: true, :id => 'fileupload' do %>
         <div class="form-body">
             <div class="form-group">
                 <label class="control-label col-md-3">{{fileInputLabel}}</label>

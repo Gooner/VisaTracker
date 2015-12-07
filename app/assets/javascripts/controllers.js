@@ -137,7 +137,18 @@ angular.module("visaTracker").controller("DataImportController", [
 
         $scope.progress = 0;
         $scope.uploaded = false;
-        $("#fileupload").ajaxForm();
+        $("#fileupload").ajaxForm({
+            uploadProgress: function(evt, pos, tot, percentComplete) { 
+                $scope.uploaded = true;
+                $scope.progress = percentComplete;
+            },
+            error: function(evt, statusText, response, form) { 
+                toastr.error(statusText, "Failed to upload " + $scope.fileInputLabel);
+            },
+            success: function(response, status, xhr, form) { 
+                toastr.success("Uploaded", "Uploaded " + $scope.fileInputLabel);
+            }
+        });
 
         var importType = $routeParams.importType ? $routeParams.importType.toLowerCase() : "";
         switch ($routeParams.importType) {
@@ -150,33 +161,4 @@ angular.module("visaTracker").controller("DataImportController", [
                 $scope.fileInputLabel = "Labor Data File";
                 break;
         }
-
-        $scope.onFileSelected = function (file) {
-            $scope.selectedFileName = file.name;
-        };
-
-        $scope.uploadFile = function ($event) {
-            $event.preventDefault();
-            $event.stopImmediatePropagation();
-            
-            var $form = $("#fileupload");     
-            $scope.progress = 0;
-
-            $form.ajaxSubmit({
-                type: 'POST',
-                dataType: 'json',
-                uploadProgress: function(evt, pos, tot, percentComplete) { 
-                    $scope.uploaded = true;
-                    $scope.progress = percentComplete;
-                },
-                error: function(evt, statusText, response, form) { 
-                    toastr.error(statusText, "Failed to upload " + $scope.fileInputLabel);
-                },
-                success: function(response, status, xhr, form) { 
-                    toastr.success("Uploaded", "Uploaded " + $scope.fileInputLabel);
-                },
-            });
-            
-            return false; 
-        };
     }]);
