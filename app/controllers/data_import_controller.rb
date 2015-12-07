@@ -11,10 +11,12 @@ class DataImportController < ApplicationController
 
     def labor_data
         uploaded_io = params[:data_file]
-
+        
+        logger.debug "Labor data import action method call for file #{uploaded_io.tempfile.path}"
         job = LaborCertImportJob.perform_later(uploaded_io.tempfile.path)
         status = { job_id: job.job_id }
         
+        logger.debug "Initiated job #{job.job_id} to import labor data from file #{uploaded_io.tempfile.path}"
         respond_to do |format|
             format.xml  { render xml: status }
             format.json { render json: status }
@@ -24,9 +26,11 @@ class DataImportController < ApplicationController
     def state_data
         uploaded_io = params[:data_file]
 
+        logger.debug "State data import action method call for file #{uploaded_io.tempfile.path}"
         job = StateImportJob.perform_later(uploaded_io.tempfile.path)
         status = { job_id: job.job_id }
         
+        logger.debug "Initiated job #{job.job_id} to import state data from file #{uploaded_io.tempfile.path}"
         respond_to do |format|
             format.xml  { render xml: status }
             format.json { render json: status }

@@ -24,35 +24,28 @@ class LaborCertImportJob < ActiveJob::Base
     private
 
     def import_labor_cases(url)
-        labor_cases = []
+        
+        logger.debug "Parsing the labor data file"
+        CSV.new(open(url, 'rt:windows-1252:utf-8'), {:headers => true, :encoding => 'windows-1252:utf-8'}).each do |row|
+            labor_case = create_labor_certificate(row)
 
-        ActiveRecord::Base.transaction do
-            logger.debug "Parsing the labor data file"
-            CSV.new(open(url, 'rt:windows-1252:utf-8'), {:headers => true, :encoding => 'windows-1252:utf-8'}).each do |row|
-                labor_case = create_labor_certificate(row)
-
-                if labor_case.valid?
-                    logger.debug "Found valid labor case with case #{labor_case.case_number}."
-                    labor_cases << labor_case
-
-                    if labor_cases.count > 99
-                        delete_insert_labor_cases(labor_cases)
-                        labor_cases = []
-                    end
-                end
+            if labor_case.valid?
+                logger.debug "Found valid labor case with case #{labor_case.case_number}."
+                delete_insert_labor_case(labor_case)
             end
-            
+
             delete_insert_labor_cases(labor_cases)
         end
     end
 
-    def delete_insert_labor_cases(labor_cases)
-        case_numbers = labor_cases.map { |l| l.case_number }
-        logger.debug "Deleting existing labor cases."
-        LaborCertification.delete_all(:case_number => case_numbers)
+    def delete_insert_labor_case(labor_case)
+        ActiveRecord::Base.transaction do
+            logger.debug "Deleting existing labor cases with case number #{labor_case.case_number}."
+            LaborCertification.delete_all(:case_number => labor_case)
 
-        logger.debug "Importing new labor cases."
-        LaborCertification.import labor_cases
+            logger.debug "Importing new labor case with case number #{labor_case.case_number}."
+            labor_case.save
+        end
     end
 
     def create_labor_certificate(row)
